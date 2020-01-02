@@ -1,0 +1,21 @@
+name: long_shadows_clock
+description: Flutter Clock challenge taken by Ianko Leite.
+version: 1.0.0
+
+environment:
+  sdk: ">=2.5.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_clock_helper:
+    git:
+      url: https://github.com/flutter/flutter_clock.git
+      path: flutter_clock_helper
+  intl: ^0.16.0
+  google_fonts: ^0.2.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
