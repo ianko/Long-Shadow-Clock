@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter_clock_helper/model.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:long_shadows_clock/long_shadow_text.dart';
 import 'package:long_shadows_clock/photos_bucket.dart';
@@ -67,8 +69,8 @@ class _LongShadowsClockState extends State<LongShadowsClock> {
   @override
   Widget build(BuildContext context) {
     // final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final bool is24HourFormat = widget.model.is24HourFormat;
-    final hour = DateFormat(is24HourFormat ? 'HH' : 'hh').format(_dateTime);
+    final hour =
+        DateFormat(widget.model.is24HourFormat ? 'HH' : 'hh').format(_dateTime);
 
     return ClipRect(
       child: Container(
@@ -78,17 +80,89 @@ class _LongShadowsClockState extends State<LongShadowsClock> {
             image: AssetImage(_currentPhoto),
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        child: Stack(
+          alignment: AlignmentDirectional.topCenter,
           children: <Widget>[
-            LongShadowText.big(hour),
-            LongShadowText.medium(_dateTime.minute),
-            LongShadowText.small(_dateTime.second),
+            DateBar(date: _dateTime),
+            Positioned.fill(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  LongShadowText.big(hour),
+                  LongShadowText.medium(_dateTime.minute),
+                  LongShadowText.small(_dateTime.second),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+class DateBar extends StatelessWidget {
+  const DateBar({Key key, this.date}) : super(key: key);
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    final weekDay = DateFormat('EEEE').format(date);
+    final dayOrdinal = _getOrdinalDates(date.day);
+    final month = DateFormat('MMMM ').format(date);
+    final year = DateFormat('y').format(date);
+
+    return DefaultTextStyle(
+      style: GoogleFonts.oswald(
+        fontSize: 10.0,
+        fontWeight: FontWeight.w100,
+        textStyle: const TextStyle(
+          letterSpacing: 2.5,
+          color: Colors.black,
+        ),
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 2.5),
+            decoration: BoxDecoration(
+              color: Colors.white12,
+              backgroundBlendMode: BlendMode.screen,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.ideographic,
+              children: <Widget>[
+                Text(
+                  weekDay.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9.0,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(width: 10.0),
+                Text('$month $dayOrdinal, $year'.toUpperCase()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _getOrdinalDates(int day) {
+  final ordinals = ['th', 'st', 'nd', 'rd'];
+  var suffix = ordinals[0];
+  final digit = day % 10;
+  if ((digit > 0 && digit < 4) && (day < 11 || day > 13)) {
+    suffix = ordinals[digit];
+  }
+  return '$day$suffix';
 }

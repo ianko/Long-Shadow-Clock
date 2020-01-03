@@ -13,7 +13,7 @@ class LongShadowText extends StatelessWidget {
     this.shadowEndColor = Colors.black,
   })  : style = style ??
             GoogleFonts.oswald(fontSize: 150.0, fontWeight: FontWeight.w700),
-        _shadowSize = 80,
+        _shadowSize = 100,
         _rightPadding = 40.0,
         super(key: key);
 
