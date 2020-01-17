@@ -13,9 +13,11 @@ dependencies:
       url: https://github.com/flutter/flutter_clock.git
       path: flutter_clock_helper
   intl: ^0.16.0
-  google_fonts: ^0.2.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/
+  fonts:
+    - family: BungeeShade
+      fonts: [asset: fonts/BungeeShade-Regular.ttf]

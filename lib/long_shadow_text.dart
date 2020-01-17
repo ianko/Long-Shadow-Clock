@@ -1,46 +1,44 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui';
 
-const _kOffsetDirection = Offset(1.2, 1.2);
+import 'package:flutter/material.dart';
+
+const _kOffsetDirection = Offset(-1.15, 1.15);
 
 class LongShadowText extends StatelessWidget {
-  LongShadowText.big(
+  const LongShadowText.big(
     this.text, {
     Key key,
     FontStyle style,
     this.color = Colors.white,
     this.shadowBeginColor = Colors.red,
     this.shadowEndColor = Colors.black,
-  })  : style = style ??
-            GoogleFonts.oswald(fontSize: 150.0, fontWeight: FontWeight.w700),
-        _shadowSize = 100,
-        _rightPadding = 40.0,
+  })  : style = style ?? const TextStyle(fontSize: 150.0),
+        _shadowSize = 500,
+        _padding = 40.0,
         super(key: key);
 
-  LongShadowText.medium(
+  const LongShadowText.medium(
     this.text, {
     Key key,
     FontStyle style,
     this.color = Colors.white,
     this.shadowBeginColor = Colors.red,
     this.shadowEndColor = Colors.black,
-  })  : style = style ??
-            GoogleFonts.oswald(fontSize: 80.0, fontWeight: FontWeight.w400),
-        _shadowSize = 80,
-        _rightPadding = 55.0,
+  })  : style = style ?? const TextStyle(fontSize: 100.0, height: 0.8),
+        _shadowSize = 500,
+        _padding = 55.0,
         super(key: key);
 
-  LongShadowText.small(
+  const LongShadowText.small(
     this.text, {
     Key key,
     FontStyle style,
     this.color = Colors.white,
     this.shadowBeginColor = Colors.red,
     this.shadowEndColor = Colors.black,
-  })  : style = style ??
-            GoogleFonts.oswald(fontSize: 40.0, fontWeight: FontWeight.w400),
-        _shadowSize = 80,
-        _rightPadding = 60.0,
+  })  : style = style ?? const TextStyle(fontSize: 60.0),
+        _shadowSize = 500,
+        _padding = 60.0,
         super(key: key);
 
   final Object text;
@@ -49,25 +47,25 @@ class LongShadowText extends StatelessWidget {
   final Color shadowBeginColor;
   final Color shadowEndColor;
   final int _shadowSize;
-  final double _rightPadding;
+  final double _padding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(right: _rightPadding),
+      padding: EdgeInsets.only(left: _padding),
       child: Text(
         text.toString().padLeft(2, '0'),
         style: style.copyWith(
-          height: 0.96,
           color: color,
+          fontFamily: 'BungeeShade',
           shadows: [
             for (var i = _shadowSize; i >= 0; i--)
               Shadow(
-                offset: _kOffsetDirection * i.toDouble(),
+                offset: _kOffsetDirection * (i / 5),
                 color: Color.lerp(
                   shadowBeginColor,
                   shadowEndColor,
-                  i.toDouble() / _shadowSize,
+                  i / _shadowSize,
                 ),
               ),
           ],

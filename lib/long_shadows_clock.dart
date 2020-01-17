@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter_clock_helper/model.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:long_shadows_clock/long_shadow_text.dart';
 import 'package:long_shadows_clock/photos_bucket.dart';
@@ -88,7 +87,7 @@ class _LongShadowsClockState extends State<LongShadowsClock> {
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   LongShadowText.big(hour),
                   LongShadowText.medium(_dateTime.minute),
@@ -116,13 +115,11 @@ class DateBar extends StatelessWidget {
     final year = DateFormat('y').format(date);
 
     return DefaultTextStyle(
-      style: GoogleFonts.oswald(
+      style: TextStyle(
         fontSize: 10.0,
         fontWeight: FontWeight.w100,
-        textStyle: const TextStyle(
-          letterSpacing: 2.5,
-          color: Colors.black,
-        ),
+        letterSpacing: 2.5,
+        color: Colors.white,
       ),
       child: ClipRect(
         child: BackdropFilter(
