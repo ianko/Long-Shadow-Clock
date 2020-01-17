@@ -2,15 +2,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clock_helper/customizer.dart';
-import 'package:long_shadows_clock/photos_bucket.dart';
 import 'package:long_shadows_clock/long_shadows_clock.dart';
+import 'package:long_shadows_clock/themes.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // load the images inside the assets directory
-  await PhotosBucket.instance.initialize();
-
   // A temporary measure until Platform supports web and TargetPlatform supports
   // macOS.
   if (!kIsWeb && Platform.isMacOS) {
@@ -20,5 +15,25 @@ Future<void> main() async {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
   }
 
-  runApp(ClockCustomizer((model) => LongShadowsClock(model)));
+  runApp(const _ThemedApp());
+}
+
+class _ThemedApp extends StatelessWidget {
+  const _ThemedApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClockCustomizer((model) {
+      return Builder(
+        builder: (context) {
+          return Theme(
+            data: Theme.of(context).brightness == Brightness.light
+                ? lightTheme
+                : darkTheme,
+            child: LongShadowsClock(model),
+          );
+        },
+      );
+    });
+  }
 }
