@@ -19,32 +19,25 @@ class DateBar extends StatelessWidget {
     final month = DateFormat('MMMM').format(date).toUpperCase();
     final year = DateFormat('y').format(date);
 
-    return DefaultTextStyle(
-      style: TextStyle(
-        fontSize: 10.0,
-        fontWeight: FontWeight.w100,
-        letterSpacing: 2.5,
-        color: theme.primaryColor,
-      ),
-      child: ClipRect(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 2.5),
-          color: theme.appBarTheme.color,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.ideographic,
-            children: <Widget>[
-              Text(weekDay, style: _alternateStyle[0]),
-              const SizedBox(width: 10.0),
-              Text(month, style: _alternateStyle[1]),
-              const SizedBox(width: 10.0),
-              Text(dayOrdinal, style: _alternateStyle[0]),
-              const SizedBox(width: 10.0),
-              Text(year, style: _alternateStyle[1]),
-            ],
-          ),
+    return Container(
+      width: double.infinity,
+      color: theme.appBarTheme.color,
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
+      child: Text.rich(
+        TextSpan(
+          children: <TextSpan>[
+            TextSpan(text: '$weekDay ', style: _alternateStyle[0]),
+            TextSpan(text: '$month ', style: _alternateStyle[1]),
+            TextSpan(text: '$dayOrdinal ', style: _alternateStyle[0]),
+            TextSpan(text: '$year', style: _alternateStyle[1]),
+          ],
+        ),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 10.0,
+          letterSpacing: 2.5,
+          wordSpacing: 5.0,
+          color: theme.primaryColor,
         ),
       ),
     );
