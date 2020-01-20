@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:simple_animations/simple_animations/controlled_animation.dart';
+import 'package:simple_animations/simple_animations/multi_track_tween.dart';
 import 'package:vector_math/vector_math_64.dart' show radians;
 
 class LongShadowText extends StatefulWidget {
@@ -35,45 +37,49 @@ class LongShadowText extends StatefulWidget {
 }
 
 class _LongShadowTextState extends State<LongShadowText> {
-  List<Shadow> _shadows;
+  final tween = MultiTrackTween([
+    Track<Color>('start').add(
+      const Duration(seconds: 30),
+      ColorTween(
+        begin: Colors.red,
+        end: Colors.black,
+      ),
+    ),
+    Track<Color>('end').add(
+      const Duration(seconds: 30),
+      ColorTween(
+        begin: Colors.black,
+        end: Colors.yellow,
+      ),
+    )
+  ]);
 
-  @override
-  void initState() {
-    super.initState();
-    _generateShadows();
-  }
-
-  @override
-  void didUpdateWidget(LongShadowText oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (!widget.hasIdenticalShadow(oldWidget)) {
-      _generateShadows();
-    }
-  }
-
-  void _generateShadows() {
+  List<Shadow> _generateShadows(Color start, Color end) {
     final direction = radians(widget.angle);
 
-    _shadows = List.generate((widget.size * widget.density).floor(), (i) {
+    return List.generate((widget.size * widget.density).floor(), (i) {
       final step = i.toDouble() / widget.density;
 
       return Shadow(
-        offset: Offset.fromDirection(direction, widget.density) * step,
-        color: Color.lerp(
-          widget.colorStart,
-          widget.colorEnd,
-          step / widget.size,
-        ),
+        offset: Offset.fromDirection(direction) * step,
+        color: Color.lerp(start, end, step / widget.size),
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      widget.text,
-      style: widget.style.copyWith(shadows: _shadows),
+    return ControlledAnimation(
+      playback: Playback.MIRROR,
+      tween: tween,
+      duration: tween.duration,
+      builder: (context, dynamic animation) {
+        return Text(
+          widget.text,
+          style: widget.style.copyWith(
+              shadows: _generateShadows(animation['start'], animation['end'])),
+        );
+      },
     );
   }
 }
