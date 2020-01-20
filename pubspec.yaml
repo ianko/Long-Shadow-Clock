@@ -13,6 +13,7 @@ dependencies:
       url: https://github.com/flutter/flutter_clock.git
       path: flutter_clock_helper
   intl: ^0.16.0
+  simple_animations: ^1.3.4
 
 flutter:
   uses-material-design: true
