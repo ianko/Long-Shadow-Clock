@@ -3,25 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:long_shadows_clock/long_shadow_text.dart';
 
 class ClockDigits extends StatelessWidget {
-  const ClockDigits.big(this.digits, {Key key})
+  const ClockDigits.big(this.digits, {Key key, @required this.animation})
       : _fontSize = 150.0,
         _shadowSize = 300,
         _padding = 40.0,
         super(key: key);
 
-  const ClockDigits.medium(this.digits, {Key key})
+  const ClockDigits.medium(this.digits, {Key key, @required this.animation})
       : _fontSize = 100.0,
         _shadowSize = 250,
         _padding = 55.0,
         super(key: key);
 
-  const ClockDigits.small(this.digits, {Key key})
+  const ClockDigits.small(this.digits, {Key key, @required this.animation})
       : _fontSize = 65.0,
         _shadowSize = 200,
         _padding = 65.0,
         super(key: key);
 
   final Object digits;
+  final AnimationController animation;
   final double _fontSize;
   final double _padding;
   final int _shadowSize;
@@ -34,6 +35,7 @@ class ClockDigits extends StatelessWidget {
       padding: EdgeInsets.only(left: _padding),
       child: LongShadowText(
         digits.toString().padLeft(2, '0'),
+        animation: animation,
         size: _shadowSize,
         density: 2.0,
         colorStart: theme.primaryColorLight,

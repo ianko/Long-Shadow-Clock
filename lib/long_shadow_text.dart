@@ -1,7 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:simple_animations/simple_animations/controlled_animation.dart';
-import 'package:simple_animations/simple_animations/multi_track_tween.dart';
 import 'package:vector_math/vector_math_64.dart' show radians;
+
+const _kColorCycle = <Color>[
+  Color(0xFF4285F4),
+  Color(0xFFDB4437),
+  Color(0xFFF4B400),
+  Color(0xFF0F9D58),
+];
 
 class LongShadowText extends StatefulWidget {
   const LongShadowText(
@@ -12,6 +18,7 @@ class LongShadowText extends StatefulWidget {
     @required this.colorStart,
     @required this.colorEnd,
     this.angle = 135.0,
+    @required this.animation,
   });
 
   final String text;
@@ -20,6 +27,7 @@ class LongShadowText extends StatefulWidget {
   final double density;
   final Color colorStart;
   final Color colorEnd;
+  final AnimationController animation;
 
   /// The angle is in degrees clockwise from the positive x-axis.
   final double angle;
@@ -27,7 +35,7 @@ class LongShadowText extends StatefulWidget {
   @override
   _LongShadowTextState createState() => _LongShadowTextState();
 
-  bool hasIdenticalShadow(LongShadowText other) {
+  bool hasIdenticalShadowAs(LongShadowText other) {
     return style == other.style &&
         size == other.size &&
         density == other.density &&
@@ -37,47 +45,102 @@ class LongShadowText extends StatefulWidget {
 }
 
 class _LongShadowTextState extends State<LongShadowText> {
-  final tween = MultiTrackTween([
-    Track<Color>('start').add(
-      const Duration(seconds: 30),
-      ColorTween(
-        begin: Colors.red,
-        end: Colors.black,
-      ),
-    ),
-    Track<Color>('end').add(
-      const Duration(seconds: 30),
-      ColorTween(
-        begin: Colors.black,
-        end: Colors.yellow,
-      ),
-    )
-  ]);
+  Animation _animation;
+  List<Shadow> _regularShadow;
 
-  List<Shadow> _generateShadows(Color start, Color end) {
-    final direction = radians(widget.angle);
+  @override
+  void initState() {
+    super.initState();
+    _regularShadow = _buildRegularShadow();
+    widget.animation.addStatusListener(_onAnimationStatusChanged);
 
-    return List.generate((widget.size * widget.density).floor(), (i) {
-      final step = i.toDouble() / widget.density;
+    _animation = CurvedAnimation(
+      parent: widget.animation,
+      curve: Curves.decelerate,
+      reverseCurve: Curves.easeOutQuint,
+    );
+  }
+
+  @override
+  void didUpdateWidget(LongShadowText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!widget.hasIdenticalShadowAs(oldWidget)) {
+      _regularShadow = _buildRegularShadow();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.animation.removeStatusListener(_onAnimationStatusChanged);
+  }
+
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    switch (status) {
+      case AnimationStatus.dismissed:
+      case AnimationStatus.completed:
+        widget.animation.reverse();
+        break;
+      default:
+    }
+  }
+
+  List<Shadow> _buildRegularShadow() {
+    final shadowCount = (widget.size * widget.density).floor();
+    final direction = Offset.fromDirection(radians(widget.angle));
+
+    return List.generate(shadowCount, (i) {
+      final step = i / widget.density;
 
       return Shadow(
-        offset: Offset.fromDirection(direction) * step,
-        color: Color.lerp(start, end, step / widget.size),
+        offset: direction * step,
+        color: Color.lerp(
+          widget.colorStart,
+          widget.colorEnd,
+          step / widget.size,
+        ),
+      );
+    });
+  }
+
+  List<Shadow> _buildShadows() {
+    if (!widget.animation.isAnimating) {
+      return _regularShadow;
+    }
+
+    final shadowCount = widget.size;
+    final colorsBlock = shadowCount / _kColorCycle.length;
+    final direction = Offset.fromDirection(radians(widget.angle));
+    final startIndex = shadowCount * _animation.value;
+    var nextColorIndex = 0;
+
+    return List.generate(shadowCount, (i) {
+      final step = i + startIndex;
+
+      if (i % colorsBlock == 0) {
+        nextColorIndex++;
+      }
+
+      if (nextColorIndex >= _kColorCycle.length) {
+        nextColorIndex = 0;
+      }
+
+      return Shadow(
+        offset: direction * step,
+        color: _kColorCycle[nextColorIndex],
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ControlledAnimation(
-      playback: Playback.MIRROR,
-      tween: tween,
-      duration: tween.duration,
-      builder: (context, dynamic animation) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
         return Text(
           widget.text,
-          style: widget.style.copyWith(
-              shadows: _generateShadows(animation['start'], animation['end'])),
+          style: widget.style.copyWith(shadows: _buildShadows()),
         );
       },
     );
