@@ -94,7 +94,7 @@ class _LongShadowsClockState extends State<LongShadowsClock>
       _minuteController.forward();
     }
 
-    if (_dateTime.minute == 0) {
+    if (_dateTime.minute == 0 && _dateTime.second == 0) {
       _hourController.forward();
     }
   }

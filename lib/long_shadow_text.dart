@@ -109,14 +109,14 @@ class _LongShadowTextState extends State<LongShadowText> {
       return _regularShadow;
     }
 
-    final shadowCount = widget.size;
+    final shadowCount = (widget.size * widget.density).floor();
     final colorsBlock = shadowCount / _kColorCycle.length;
     final direction = Offset.fromDirection(radians(widget.angle));
     final startIndex = shadowCount * _animation.value;
     var nextColorIndex = 0;
 
     return List.generate(shadowCount, (i) {
-      final step = i + startIndex;
+      final step = (i + startIndex) / widget.density;
 
       if (i % colorsBlock == 0) {
         nextColorIndex++;
