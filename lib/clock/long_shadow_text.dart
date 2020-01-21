@@ -1,33 +1,44 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:long_shadows_clock/config.dart';
 import 'package:vector_math/vector_math_64.dart' show radians;
 
-const _kColorCycle = <Color>[
-  Color(0xFF4285F4),
-  Color(0xFFDB4437),
-  Color(0xFFF4B400),
-  Color(0xFF0F9D58),
-];
-
+/// It's basically a `Text` that will build a long shadow and animate
+/// a rainbow shadow on command.
 class LongShadowText extends StatefulWidget {
   const LongShadowText(
     this.text, {
+    Key key,
     @required this.style,
-    this.size = 100,
-    this.density = 1.0,
     @required this.colorStart,
     @required this.colorEnd,
+    this.density = 1.0,
     this.angle = 135.0,
-    @required this.animation,
-  });
+    this.animation,
+  }) : super(key: key);
 
+  /// The main text to show.
   final String text;
+
+  /// The text style.
+  ///
+  /// If no `shadows` is present, this widget will not build a long shadow.
   final TextStyle style;
-  final int size;
-  final double density;
+
+  /// In a gradient long shadow, the start color is the one closest to the text.
   final Color colorStart;
+
+  /// In a gradient long shadow, the start color is the one farthest to the text.
+  ///
+  /// If you don't want a gradient shadow, just set the same as the `colorStart`.
   final Color colorEnd;
+
+  /// Optional controller to trigger the rainbow animation.
   final AnimationController animation;
+
+  /// How dense do you want the shadow to be?
+  /// Higher density will be smoother (less aliasing), but slower to render.
+  final double density;
 
   /// The angle is in degrees clockwise from the positive x-axis.
   final double angle;
@@ -35,9 +46,8 @@ class LongShadowText extends StatefulWidget {
   @override
   _LongShadowTextState createState() => _LongShadowTextState();
 
-  bool hasIdenticalShadowAs(LongShadowText other) {
+  bool _hasIdenticalShadowAs(LongShadowText other) {
     return style == other.style &&
-        size == other.size &&
         density == other.density &&
         colorStart == other.colorStart &&
         colorEnd == other.colorEnd;
@@ -47,25 +57,33 @@ class LongShadowText extends StatefulWidget {
 class _LongShadowTextState extends State<LongShadowText> {
   Animation _animation;
   List<Shadow> _regularShadow;
+  List<Color> _rainbowColors;
+  bool get hasAnimation => widget.animation != null;
 
   @override
   void initState() {
     super.initState();
     _regularShadow = _buildRegularShadow();
-    widget.animation.addStatusListener(_onAnimationStatusChanged);
 
-    _animation = CurvedAnimation(
-      parent: widget.animation,
-      curve: Curves.decelerate,
-      reverseCurve: Curves.easeOutQuint,
-    );
+    if (hasAnimation) {
+      widget.animation.addStatusListener(_onAnimationStatusChanged);
+      _animation = CurvedAnimation(
+        parent: widget.animation,
+        curve: Curves.decelerate,
+        reverseCurve: Curves.easeOutQuint,
+      );
+    }
   }
 
   @override
   void didUpdateWidget(LongShadowText oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (!widget.hasIdenticalShadowAs(oldWidget)) {
+    _rainbowColors = Theme.of(context).brightness == Brightness.light
+        ? kRainbowColorsLight
+        : kRainbowColorsDark;
+
+    if (!widget._hasIdenticalShadowAs(oldWidget)) {
       _regularShadow = _buildRegularShadow();
     }
   }
@@ -73,21 +91,21 @@ class _LongShadowTextState extends State<LongShadowText> {
   @override
   void dispose() {
     super.dispose();
-    widget.animation.removeStatusListener(_onAnimationStatusChanged);
+    widget.animation?.removeStatusListener(_onAnimationStatusChanged);
   }
 
   void _onAnimationStatusChanged(AnimationStatus status) {
-    switch (status) {
-      case AnimationStatus.dismissed:
-      case AnimationStatus.completed:
-        widget.animation.reverse();
-        break;
-      default:
+    if (status == AnimationStatus.completed) {
+      widget.animation.reverse();
     }
   }
 
   List<Shadow> _buildRegularShadow() {
-    final shadowCount = (widget.size * widget.density).floor();
+    if (widget.style.shadows == null || widget.style.shadows.isEmpty) {
+      return null;
+    }
+
+    final shadowCount = (widget.style.shadows.length * widget.density).floor();
     final direction = Offset.fromDirection(radians(widget.angle));
 
     return List.generate(shadowCount, (i) {
@@ -98,19 +116,23 @@ class _LongShadowTextState extends State<LongShadowText> {
         color: Color.lerp(
           widget.colorStart,
           widget.colorEnd,
-          step / widget.size,
+          step / widget.style.shadows.length,
         ),
       );
     });
   }
 
   List<Shadow> _buildShadows() {
-    if (!widget.animation.isAnimating) {
+    if (!hasAnimation || !widget.animation.isAnimating) {
       return _regularShadow;
     }
 
-    final shadowCount = (widget.size * widget.density).floor();
-    final colorsBlock = shadowCount / _kColorCycle.length;
+    if (widget.style.shadows == null || widget.style.shadows.isEmpty) {
+      return null;
+    }
+
+    final shadowCount = (widget.style.shadows.length * widget.density).floor();
+    final colorsBlock = shadowCount / _rainbowColors.length;
     final direction = Offset.fromDirection(radians(widget.angle));
     final startIndex = shadowCount * _animation.value;
     var nextColorIndex = 0;
@@ -122,13 +144,13 @@ class _LongShadowTextState extends State<LongShadowText> {
         nextColorIndex++;
       }
 
-      if (nextColorIndex >= _kColorCycle.length) {
+      if (nextColorIndex >= _rainbowColors.length) {
         nextColorIndex = 0;
       }
 
       return Shadow(
         offset: direction * step,
-        color: _kColorCycle[nextColorIndex],
+        color: _rainbowColors[nextColorIndex],
       );
     });
   }
@@ -136,7 +158,7 @@ class _LongShadowTextState extends State<LongShadowText> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _animation,
+      animation: _animation ?? kAlwaysDismissedAnimation,
       builder: (context, child) {
         return Text(
           widget.text,

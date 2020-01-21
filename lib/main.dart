@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clock_helper/customizer.dart';
-import 'package:long_shadows_clock/long_shadows_clock.dart';
+import 'package:long_shadows_clock/clock/long_shadows_clock.dart';
 import 'package:long_shadows_clock/themes.dart';
 
 Future<void> main() async {

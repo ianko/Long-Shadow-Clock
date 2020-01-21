@@ -2,15 +2,15 @@ import 'dart:async';
 import 'package:flutter_clock_helper/model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:long_shadows_clock/clock_digits.dart';
-import 'package:long_shadows_clock/date_bar.dart';
+import 'package:long_shadows_clock/clock/clock_digits.dart';
+import 'package:long_shadows_clock/clock/date_bar.dart';
+import 'package:long_shadows_clock/config.dart';
 
-const _kFwdDuration = Duration(milliseconds: 350);
-const _kRwdDuration = Duration(milliseconds: 450);
-
+/// Main Screen of the app.
 class LongShadowsClock extends StatefulWidget {
   const LongShadowsClock(this.model);
 
+  /// This is the model that contains the customization options for the clock.
   final ClockModel model;
 
   @override
@@ -34,20 +34,20 @@ class _LongShadowsClockState extends State<LongShadowsClock>
 
     _hourController = AnimationController(
       vsync: this,
-      duration: _kFwdDuration,
-      reverseDuration: _kRwdDuration,
+      duration: kFwdAnimDuration,
+      reverseDuration: kRwdAnimDuration,
     );
 
     _minuteController = AnimationController(
       vsync: this,
-      duration: _kFwdDuration,
-      reverseDuration: _kRwdDuration,
+      duration: kFwdAnimDuration,
+      reverseDuration: kRwdAnimDuration,
     );
 
     _secondController = AnimationController(
       vsync: this,
-      duration: _kFwdDuration,
-      reverseDuration: _kRwdDuration,
+      duration: kFwdAnimDuration,
+      reverseDuration: kRwdAnimDuration,
     );
   }
 
@@ -72,9 +72,7 @@ class _LongShadowsClockState extends State<LongShadowsClock>
     super.dispose();
   }
 
-  void _updateModel() {
-    setState(() {});
-  }
+  void _updateModel() => setState(() {});
 
   Future<void> _updateTime() async {
     setState(() {
@@ -86,14 +84,17 @@ class _LongShadowsClockState extends State<LongShadowsClock>
       );
     });
 
+    // animate the seconds digits on multiples of 10 seconds.
     if (_dateTime.second % 10 == 0) {
       _secondController.forward();
     }
 
+    // animate the minutes digits every new minute.
     if (_dateTime.second == 0) {
       _minuteController.forward();
     }
 
+    // animate the hours digits every new hour.
     if (_dateTime.minute == 0 && _dateTime.second == 0) {
       _hourController.forward();
     }
@@ -101,27 +102,45 @@ class _LongShadowsClockState extends State<LongShadowsClock>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final hourFormat = widget.model.is24HourFormat ? 'HH' : 'hh';
 
+    // clip the shadows to prevent an overflow
     return ClipRect(
       child: Container(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: theme.scaffoldBackgroundColor,
         child: Stack(
           alignment: AlignmentDirectional.topCenter,
           children: <Widget>[
+            // DATE
             DateBar(date: _dateTime),
+
             Positioned.fill(
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  ClockDigits.big(DateFormat(hourFormat).format(_dateTime),
-                      animation: _hourController),
-                  ClockDigits.medium(_dateTime.minute,
-                      animation: _minuteController),
-                  ClockDigits.small(_dateTime.second,
-                      animation: _secondController),
+                  // HOUR
+                  ClockDigits.big(
+                    DateFormat(hourFormat).format(_dateTime),
+                    style: theme.textTheme.display1,
+                    animation: _hourController,
+                  ),
+
+                  // MINUTE
+                  ClockDigits.medium(
+                    _dateTime.minute,
+                    style: theme.textTheme.display2,
+                    animation: _minuteController,
+                  ),
+
+                  // SECOND
+                  ClockDigits.small(
+                    _dateTime.second,
+                    style: theme.textTheme.display3,
+                    animation: _secondController,
+                  ),
                 ],
               ),
             ),

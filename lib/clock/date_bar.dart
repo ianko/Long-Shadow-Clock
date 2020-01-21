@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:long_shadows_clock/utils/date_utils.dart';
 
-const _alternateStyle = <TextStyle>[
+/// Alternate the `fontWeight` styles for each date part.
+const _kAlternateStyle = <TextStyle>[
   TextStyle(fontWeight: FontWeight.w900),
   TextStyle(fontWeight: FontWeight.w400),
 ];
 
+/// The top bar showing the full date.
 class DateBar extends StatelessWidget {
   const DateBar({Key key, this.date}) : super(key: key);
 
+  /// Current `DateTime`.
   final DateTime date;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final weekDay = DateFormat('EEEE').format(date).toUpperCase();
-    final dayOrdinal = _getOrdinalDates(date.day).toUpperCase();
+    final dayOrdinal = ordinalDay(date.day).toUpperCase();
     final month = DateFormat('MMMM').format(date).toUpperCase();
     final year = DateFormat('y').format(date);
 
@@ -26,30 +30,15 @@ class DateBar extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           children: <TextSpan>[
-            TextSpan(text: '$weekDay ', style: _alternateStyle[0]),
-            TextSpan(text: '$month ', style: _alternateStyle[1]),
-            TextSpan(text: '$dayOrdinal ', style: _alternateStyle[0]),
-            TextSpan(text: '$year', style: _alternateStyle[1]),
+            TextSpan(text: '$weekDay ', style: _kAlternateStyle[0]),
+            TextSpan(text: '$month ', style: _kAlternateStyle[1]),
+            TextSpan(text: '$dayOrdinal ', style: _kAlternateStyle[0]),
+            TextSpan(text: '$year', style: _kAlternateStyle[1]),
           ],
         ),
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 10.0,
-          letterSpacing: 2.5,
-          wordSpacing: 5.0,
-          color: theme.primaryColor,
-        ),
+        style: theme.textTheme.headline,
       ),
     );
   }
-}
-
-String _getOrdinalDates(int day) {
-  final ordinals = ['th', 'st', 'nd', 'rd'];
-  var suffix = ordinals[0];
-  final digit = day % 10;
-  if ((digit > 0 && digit < 4) && (day < 11 || day > 13)) {
-    suffix = ordinals[digit];
-  }
-  return '$day$suffix';
 }
